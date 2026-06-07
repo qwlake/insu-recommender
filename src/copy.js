@@ -1,0 +1,22 @@
+export const COPY = Object.freeze({
+  appTitle: '한화손보 AI 생체정보 기반 상품 추천',
+  heroTitle: '얼굴 인식으로 상품을 추천받아보세요',
+  heroBody: '추정된 나이와 성별을 바탕으로 연령대와 성별에 맞춰 한화손보 추천 상품을 보여드립니다.',
+  privacyBullets: [
+    '카메라는 버튼을 누른 뒤에만 켜집니다.',
+    '결과는 추정값이며 직접 수정할 수 있습니다.',
+  ],
+  startButton: '카메라로 추정 시작',
+  manualButton: '수동 입력으로 보기',
+  retryButton: '다시 시도',
+  resetButton: '처음으로',
+  analyzeButton: '얼굴 입체 스캔 시작',
+  stopCameraButton: '카메라 끄기',
+  loadingModel: '분석 모델을 준비하는 중입니다',
+  cameraReady: '카메라가 준비되었습니다. 안내가 바뀔 때까지 천천히 움직여 주세요.',
+  analyzing: '얼굴 방향을 확인하며 여러 각도의 프레임을 분석하는 중입니다…',
+  estimateBadge: '추정 결과',
+  productSourceLabel: '공식 출처 보기',
+  fallbackTitle: '수동 입력을 사용할 수 있습니다',
+  fallbackBody: '권한 거부, 브라우저 제한, 얼굴 미검출 또는 낮은 신뢰도일 때 수동 입력으로 상품을 볼 수 있습니다.',
+});
