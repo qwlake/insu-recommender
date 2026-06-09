@@ -92,13 +92,13 @@ function renderIntro() {
         <h1 class="page-title">${COPY.heroTitle}</h1>
         <p class="muted hero-body">${COPY.heroBody}</p>
         <div class="badges">
-          <span class="badge">브라우저 분석</span>
+          <span class="badge">브라우저 내 분석</span>
           <span class="badge">얼굴 입체 스캔</span>
         </div>
         <div class="flow-strip" aria-label="진행 방식">
           <div><b>1</b><span>카메라 권한 허용</span></div>
           <div><b>2</b><span>얼굴 입체 스캔</span></div>
-          <div><b>3</b><span>상품 확인</span></div>
+          <div><b>3</b><span>추천 상품 확인</span></div>
         </div>
         ${debugNotice()}
         <div class="actions">
@@ -117,7 +117,7 @@ function renderIntro() {
   `);
 
   document.querySelector('#start-camera').addEventListener('click', handleStartCamera);
-  document.querySelector('#manual-start').addEventListener('click', () => renderFallback('사용자가 수동 입력을 선택했습니다.'));
+  document.querySelector('#manual-start').addEventListener('click', () => renderFallback('수동 입력을 선택했습니다.'));
 }
 
 function renderLoading(status = COPY.loadingModel) {
@@ -135,9 +135,9 @@ function renderLoading(status = COPY.loadingModel) {
 
 async function renderAnalysisTransition({
   eyebrow = 'AI scan',
-  title = '분석 결과를 정리하는 중입니다',
+  title = '분석 결과를 정리하고 있습니다',
   body = '잠시 후 다음 화면으로 이동합니다.',
-  steps = ['스캔 완료', '추정값 정리', '화면 준비'],
+  steps = ['스캔 완료', '추정값 정리', '다음 화면 준비'],
   durationMs = 980,
 } = {}) {
   baseShell(`
@@ -160,7 +160,7 @@ async function renderAnalysisTransition({
 
 async function handleStartCamera() {
   if (!isCameraSupported()) {
-    renderFallback('이 브라우저에서는 카메라 API를 사용할 수 없습니다.');
+    renderFallback('이 브라우저는 카메라 API를 지원하지 않습니다.');
     return;
   }
 
@@ -183,8 +183,8 @@ function renderCamera() {
   baseShell(`
     <section class="card stage camera-stage">
       <div>
-        <h1 class="page-title">단계에 따라 얼굴을 입체적으로 분석합니다</h1>
-        <p class="muted">안내가 바뀔 때까지 천천히 움직이면 됩니다. 라이브 프레임만 브라우저 메모리에서 분석합니다.</p>
+        <h1 class="page-title">단계 안내에 맞춰 얼굴을 입체적으로 스캔합니다</h1>
+        <p class="muted">안내가 바뀔 때까지 천천히 움직여 주세요. 라이브 프레임만 브라우저 메모리에서 분석합니다.</p>
       </div>
       <div class="camera-grid">
         <div class="video-wrap">
@@ -200,7 +200,7 @@ function renderCamera() {
             </div>
             <div class="scan-pulse"></div>
           </div>
-          <div class="video-overlay"><span id="video-overlay-label">얼굴을 가이드 안에 맞춰주세요</span></div>
+          <div class="video-overlay"><span id="video-overlay-label">얼굴이 가이드 안에 들어오게 맞춰주세요</span></div>
         </div>
         <aside class="status-panel card inner-card">
           <p class="eyebrow">Guided scan</p>
@@ -212,7 +212,7 @@ function renderCamera() {
             <li data-step="opposite-side"><span class="step-mark">3</span><span class="step-copy">반대쪽</span></li>
             <li data-step="center-end"><span class="step-mark">4</span><span class="step-copy">정면 복귀</span></li>
           </ol>
-          <div class="status-line" id="status-line">카메라 준비 중…</div>
+          <div class="status-line" id="status-line">카메라 준비 중...</div>
           ${debugNotice()}
           <button class="btn orange" id="analyze-face">${COPY.analyzeButton}</button>
           <button class="btn secondary" id="manual-fallback">${COPY.manualButton}</button>
@@ -237,7 +237,7 @@ function updateScanUi({ progress = 0, phase = '', samplesCaptured = 0, yawDegree
   const videoWrap = document.querySelector('.video-wrap');
   const overlayLabel = document.querySelector('#video-overlay-label');
   const pct = Math.min(100, Math.max(0, Math.round(progress * 100)));
-  const phaseText = phase || '얼굴을 화면 안에 맞춰주세요.';
+  const phaseText = phase || '얼굴이 화면 안에 들어오게 맞춰주세요.';
   if (phaseEl) phaseEl.textContent = phaseText;
   if (overlayLabel) overlayLabel.textContent = pct >= 100 ? '스캔 완료' : phaseText;
   if (barEl) barEl.style.width = `${pct}%`;
@@ -279,14 +279,14 @@ async function handleAnalyze() {
     stopActiveCamera();
     await renderAnalysisTransition({
       eyebrow: 'Scan complete',
-      title: '얼굴 입체 스캔이 완료되었습니다',
-      body: '추정된 나이와 성별을 확인 화면으로 정리하고 있습니다.',
+      title: '얼굴 입체 스캔을 완료했습니다',
+      body: '추정 나이와 성별을 확인 화면에 정리하고 있습니다.',
       steps: ['스캔 완료', '추정값 정리', '확인 화면 준비'],
       durationMs: 920,
     });
     renderProfileConfirm(result);
   } catch (error) {
-    renderFallback('얼굴 분석 중 문제가 발생했습니다. 수동 입력을 사용할 수 있습니다.');
+    renderFallback('얼굴 분석 중 문제가 발생했습니다. 수동 입력으로 이어갑니다.');
   } finally {
     if (button) button.disabled = false;
   }
@@ -299,14 +299,14 @@ function renderProfileConfirm(profile) {
       <div class="card">
         <p class="eyebrow">추정값 확인</p>
         <h1 class="page-title">나이와 성별을 확인해 주세요</h1>
-        <p class="muted">카메라 모델은 외형 기반 추정만 하므로 실제 나이와 다를 수 있습니다. 이 화면에서 직접 수정할 수 있습니다.</p>
+        <p class="muted">카메라 모델은 외형만 보고 추정합니다. 실제 나이와 차이가 나면 이 화면에서 직접 수정하세요.</p>
         <div class="estimate-summary">
           <div><span>추정 나이</span><b>${profile.apparentAge ? `${escapeHtml(profile.apparentAge)}세` : '미확인'}</b></div>
           <div><span>추정 성별</span><b>${escapeHtml(genderLabel(profile.apparentGender))}</b></div>
         </div>
       </div>
       <form id="confirm-form" class="card form-card">
-        <h2>표시할 기준값</h2>
+        <h2>추천에 사용할 기준값</h2>
         <p class="muted">이 값은 상품 카드 선택에만 사용됩니다.</p>
         <div class="form-grid">
           <div class="field">
@@ -346,8 +346,8 @@ function renderProfileConfirm(profile) {
     currentProfile = confirmedProfile;
     await renderAnalysisTransition({
       eyebrow: 'Recommendation',
-      title: '추천 상품을 구성하는 중입니다',
-      body: '확인된 나이와 성별을 기준으로 상품 카드를 준비하고 있습니다.',
+      title: '추천 상품을 구성하고 있습니다',
+      body: '확인한 나이와 성별을 기준으로 상품 카드를 준비하고 있습니다.',
       steps: ['기준값 확인', '추천 상품 구성', '공식 출처 연결'],
       durationMs: 820,
     });
@@ -402,7 +402,7 @@ function renderFallback(reason, partialProfile = null) {
     currentProfile = profile;
     await renderAnalysisTransition({
       eyebrow: 'Recommendation',
-      title: '추천 상품을 구성하는 중입니다',
+      title: '추천 상품을 구성하고 있습니다',
       body: '입력한 나이와 성별을 기준으로 상품 카드를 준비하고 있습니다.',
       steps: ['입력값 확인', '추천 상품 구성', '공식 출처 연결'],
       durationMs: 820,
@@ -423,7 +423,7 @@ function renderResult(profile, source) {
     <section class="stage">
       <div class="card result-hero">
         <p class="eyebrow">${sourceLabel}</p>
-        <h1 class="page-title">추천 상품 ${items.length}가지를 보여드립니다</h1>
+        <h1 class="page-title">추천 상품 ${items.length}가지를 준비했습니다</h1>
       </div>
       <div class="result-grid">
         <aside class="card profile-card">
@@ -443,7 +443,7 @@ function renderResult(profile, source) {
       </div>
     </section>
   `);
-  document.querySelector('#edit-manual').addEventListener('click', () => renderFallback('사용자가 결과 수정을 선택했습니다.', currentProfile));
+  document.querySelector('#edit-manual').addEventListener('click', () => renderFallback('결과 수정을 선택했습니다.', currentProfile));
   document.querySelector('#home').addEventListener('click', renderIntro);
 }
 

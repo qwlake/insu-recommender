@@ -55,7 +55,7 @@ describe('summarizeFaceSamples', () => {
     ], 5);
 
     expect(profile.apparentGender).toBe('unknown');
-    expect(profile.uncertainReason).toContain('성별 추정값이 불확실합니다.');
+    expect(profile.uncertainReason).toContain('성별 추정값을 확정하기 어렵습니다.');
   });
 
   it('prefers a repeated adult age cluster over an under-20-biased median during scan', () => {
