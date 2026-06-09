@@ -9,7 +9,7 @@
     "preview": "vite preview --host 0.0.0.0",
     "test": "vitest run",
     "release:sync": "node scripts/sync-release-artifacts.mjs",
-    "build:pages": "vite build --base=/insu-recommender/"
+    "build:pages": "vite build --base=./"
   },
   "dependencies": {
     "@vladmandic/human": "latest"
