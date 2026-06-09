@@ -167,10 +167,10 @@ function renderCamera() {
           <div class="scan-phase" id="scan-phase">준비되면 스캔을 시작하세요.</div>
           <div class="scan-progress"><span id="scan-progress-bar"></span></div>
           <ol class="scan-steps" id="scan-steps">
-            <li data-step="center-start">정면</li>
-            <li data-step="first-side">한쪽</li>
-            <li data-step="opposite-side">반대쪽</li>
-            <li data-step="center-end">정면 복귀</li>
+            <li data-step="center-start"><span class="step-mark">1</span><span class="step-copy">정면</span></li>
+            <li data-step="first-side"><span class="step-mark">2</span><span class="step-copy">한쪽</span></li>
+            <li data-step="opposite-side"><span class="step-mark">3</span><span class="step-copy">반대쪽</span></li>
+            <li data-step="center-end"><span class="step-mark">4</span><span class="step-copy">정면 복귀</span></li>
           </ol>
           <div class="status-line" id="status-line">카메라 준비 중…</div>
           ${debugNotice()}
@@ -191,7 +191,7 @@ function setStatus(status) {
   if (el) el.textContent = status;
 }
 
-function updateScanUi({ progress = 0, phase = '', samplesCaptured = 0, yawDegrees = null, completedSteps = [] }) {
+function updateScanUi({ progress = 0, phase = '', samplesCaptured = 0, yawDegrees = null, step = '', completedSteps = [] }) {
   const phaseEl = document.querySelector('#scan-phase');
   const barEl = document.querySelector('#scan-progress-bar');
   const videoWrap = document.querySelector('.video-wrap');
@@ -206,11 +206,15 @@ function updateScanUi({ progress = 0, phase = '', samplesCaptured = 0, yawDegree
     videoWrap.classList.toggle('scan-complete', pct >= 100);
     videoWrap.style.setProperty('--scan-progress', `${pct}%`);
     videoWrap.style.setProperty('--scan-y', `${pct * 2.3}px`);
+    if (step) videoWrap.dataset.scanStep = step;
   }
 
   document.querySelectorAll('#scan-steps [data-step]').forEach((stepEl) => {
     const isDone = completedSteps.includes(stepEl.dataset.step);
+    const isActive = stepEl.dataset.step === step && !isDone && pct < 100;
     stepEl.classList.toggle('done', isDone);
+    stepEl.classList.toggle('active', isActive);
+    stepEl.setAttribute('aria-current', isActive ? 'step' : 'false');
   });
 
   const yawText = Number.isFinite(yawDegrees) ? ` · yaw ${Math.round(yawDegrees)}°` : '';
