@@ -9,6 +9,7 @@ const app = document.querySelector('#app');
 let stream = null;
 let currentProfile = null;
 const MIN_RECOMMENDATION_AGE = 20;
+const assetUrl = (path) => `${import.meta.env.BASE_URL}${path}`;
 
 function genderLabel(gender) {
   return ({ female: '여성 추정', male: '남성 추정', unknown: '미확인' })[gender] || '미확인';
@@ -58,7 +59,7 @@ function baseShell(content) {
       <div class="container">
         <header class="app-header" aria-label="서비스 정보">
           <div class="brand-lockup">
-            <img class="brand-logo" src="/hanwha-logo.svg" alt="Hanwha" width="145" height="40" />
+            <img class="brand-logo" src="${assetUrl('hanwha-logo.svg')}" alt="Hanwha" width="145" height="40" />
             <div>
               <strong>${COPY.appTitle}</strong>
             </div>
