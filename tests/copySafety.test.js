@@ -60,4 +60,13 @@ describe('copy and privacy safety', () => {
       expect(FACE_ANALYZER_PUBLIC_FIELDS.includes(key)).toBe(false);
     }
   });
+
+  it('does not include face-analysis debug collection endpoints', () => {
+    const combined = walk(SRC_DIR)
+      .map((file) => readFileSync(file, 'utf8'))
+      .join('\n');
+
+    expect(combined).not.toContain('__face_debug');
+    expect(combined).not.toContain('face-debug');
+  });
 });

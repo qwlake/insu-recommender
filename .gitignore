@@ -3,6 +3,8 @@ dist/
 .playwright-cli/
 .playwright-mcp/
 output/
+output/face-debug.ndjson
+.omx/
 .DS_Store
 .env
 .env.*
