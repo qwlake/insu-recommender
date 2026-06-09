@@ -167,7 +167,7 @@ async function handleStartCamera() {
 
 function renderCamera() {
   baseShell(`
-    <section class="card stage">
+    <section class="card stage camera-stage">
       <div>
         <h1 class="page-title">단계에 따라 얼굴을 입체적으로 분석합니다</h1>
         <p class="muted">안내가 바뀔 때까지 천천히 움직이면 됩니다. 라이브 프레임만 브라우저 메모리에서 분석합니다.</p>
