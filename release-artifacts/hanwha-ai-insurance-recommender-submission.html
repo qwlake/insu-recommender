@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>한화손보 AI 생체정보 기반 상품 추천 제출 산출물</title>
+  <style>
+    @page { size: A4 landscape; margin: 0; }
+    :root {
+      --orange: #f37321;
+      --orange2: #ff7a1a;
+      --navy: #172033;
+      --ink: #111827;
+      --muted: #667085;
+      --soft: #f5f7fb;
+      --line: #e5e7eb;
+      --blue: #2447a8;
+      --green: #0e9f6e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: #fff;
+      line-height: 1.55;
+      word-break: keep-all;
+    }
+    .page { width: 297mm; height: 210mm; page-break-after: always; break-after: page; position: relative; padding: 12mm; overflow: hidden; }
+    .page:last-child { page-break-after: auto; }
+    .cover {
+      height: 210mm;
+      padding: 14mm 12mm 12mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+    }
+    .cover::before {
+      content: "";
+      position: absolute;
+      inset: -30mm -20mm auto auto;
+      width: 120mm;
+      height: 120mm;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(243,115,33,.16), rgba(243,115,33,0) 68%);
+    }
+    .brand { display: flex; align-items: center; gap: 14px; font-weight: 900; color: var(--navy); white-space: nowrap; }
+    .brand img { width: 112px; height: auto; flex: 0 0 auto; }
+    .eyebrow { color: var(--orange); font-weight: 950; letter-spacing: -.02em; margin: 0 0 10px; }
+    h1 { font-size: 36px; line-height: 1.12; letter-spacing: -.08em; margin: 0 0 16px; color: var(--navy); }
+    h2 { font-size: 22px; line-height: 1.25; letter-spacing: -.06em; margin: 0 0 14px; color: var(--navy); }
+    h3 { font-size: 16px; margin: 0 0 8px; color: var(--navy); letter-spacing: -.04em; }
+    p { margin: 0 0 10px; }
+    .lead { font-size: 15px; color: #344054; max-width: 152mm; }
+
+    /* Minimal information blocks: no gray boxes, no shadows */
+    .meta { display: flex; gap: 26px; margin-top: 20px; align-items: flex-start; }
+    .meta div,
+    .card,
+    .tile,
+    .pillbox,
+    .diagram .box,
+    .scan-note,
+    .callout {
+      border: 0;
+      box-shadow: none;
+      background: transparent;
+      border-radius: 0;
+    }
+    .meta div { border-left: 3px solid var(--orange); padding-left: 12px; min-width: 46mm; }
+    .meta b, .tile b { display: block; color: var(--navy); font-size: 15px; }
+    .meta span, .tile span { color: var(--muted); font-size: 12px; }
+
+    .hero-card {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      margin-top: 14px;
+      border-radius: 26px;
+      padding: 22px;
+      color: white;
+      background: linear-gradient(135deg, var(--navy), #24344e 58%, var(--orange));
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-card::after {
+      content: "";
+      position: absolute;
+      right: -20mm;
+      bottom: -28mm;
+      width: 88mm;
+      height: 88mm;
+      border-radius: 50%;
+      background: rgba(255,255,255,.12);
+    }
+    .hero-grid { display: grid; grid-template-columns: 1.2fr .8fr; gap: 18px; align-items: center; }
+    .hero-card h2 { color: white; font-size: 22px; }
+    .hero-card p { color: rgba(255,255,255,.82); }
+    .phone-mock { border-radius: 22px; background: rgba(255,255,255,.14); padding: 10px; border: 1px solid rgba(255,255,255,.22); }
+    .phone-mock img { width: 100%; display: block; border-radius: 14px; }
+
+    .section { padding-top: 4mm; }
+    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+
+    .card { padding: 0 0 0 13px; border-left: 3px solid #eef0f4; }
+    .card h3 { margin-bottom: 9px; }
+    .tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 18px; margin-top: 12px; }
+    .tile { min-height: 78px; padding: 0 0 0 13px; border-left: 3px solid #eef0f4; }
+    .tile .num { color: var(--orange); font-weight: 950; font-size: 22px; line-height: 1; margin-bottom: 8px; }
+
+    .tag { display: inline-flex; align-items: center; border-radius: 999px; padding: 5px 9px; font-size: 11px; font-weight: 900; background: #fff2ea; color: #b64c00; margin: 0 5px 6px 0; }
+    .tag.blue { background: #eef4ff; color: #2447a8; }
+    .tag.green { background: #ecfdf3; color: #027a48; }
+    .tag.gray { background: #f2f4f7; color: #475467; }
+
+    .flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 12px 0 18px; }
+    .flow div {
+      background: transparent;
+      border: 0;
+      border-bottom: 2px solid #eef0f4;
+      border-radius: 0;
+      padding: 9px 4px 11px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 850;
+      color: var(--navy);
+      position: relative;
+    }
+    .flow div:not(:last-child)::after { content: "→"; position: absolute; right: -10px; top: 50%; transform: translateY(-50%); color: var(--orange); font-weight: 950; }
+
+    .diagram { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; align-items: stretch; margin-top: 14px; }
+    .diagram .box { min-height: 120px; padding: 0 0 0 13px; border-left: 3px solid #eef0f4; }
+    .diagram .box strong { color: var(--navy); font-size: 16px; display: block; margin-bottom: 8px; }
+    .diagram ul, .compact-list { margin: 0; padding-left: 18px; color: #475467; font-size: 12.5px; }
+
+    .screenshot { width: 100%; border-radius: 18px; border: 1px solid var(--line); box-shadow: 0 18px 38px rgba(17,24,39,.08); display: block; background: #f8fafc; }
+    .screenshot--fit { height: 125mm; width: auto; max-width: 100%; object-fit: contain; object-position: top center; margin: 0 auto; }
+    .screenshot--mini { height: 106mm; width: auto; max-width: 100%; object-fit: contain; object-position: top center; margin: 0 auto; }
+    .result-layout { display: grid; grid-template-columns: 1.45fr .7fr; gap: 14px; align-items: start; }
+    .result-notes { display: grid; gap: 12px; }
+    .rule-layout { display: grid; grid-template-columns: 1.25fr .75fr; gap: 14px; align-items: start; margin-top: 10px; }
+    .side-stack { display: grid; gap: 10px; }
+    .compact-card { padding: 0 0 0 13px; border-left: 3px solid #eef0f4; border-radius: 0; }
+    .compact-card h3 { font-size: 14px; margin-bottom: 5px; }
+    .compact-card p, .compact-card li { font-size: 11.3px; line-height: 1.45; }
+    .compact-table { font-size: 10.6px; }
+    .compact-table td { padding: 7px 8px; }
+    .compact-table th { padding: 8px; }
+
+    .screenshot-card { border: 0; border-radius: 0; padding: 0; background: transparent; box-shadow: none; }
+    .screenshot-card .caption { margin: 8px 2px 0; }
+    .scan-landscape-wrap { display: grid; gap: 10px; align-items: start; }
+    .scan-landscape-shot { height: 122mm; width: auto; max-width: 100%; object-fit: contain; object-position: center; border-radius: 18px; border: 1px solid var(--line); box-shadow: 0 18px 42px rgba(17,24,39,.10); background: #fff; display: block; margin: 0 auto; }
+    .scan-note { padding: 0 0 0 13px; border-left: 3px solid #eef0f4; }
+    .scan-note ul { margin: 6px 0 0; padding-left: 18px; color: #475467; font-size: 11.5px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0 12px; }
+    .caption { color: var(--muted); font-size: 11px; margin-top: 8px; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 10.8px; border-radius: 0; overflow: hidden; margin-top: 10px; }
+    th { background: var(--navy); color: #fff; text-align: left; padding: 7px 8px; }
+    td { border-bottom: 1px solid var(--line); padding: 6px 8px; vertical-align: top; }
+    tr:nth-child(even) td { background: transparent; }
+    .small { font-size: 11.5px; color: var(--muted); }
+
+    .callout { border-left: 4px solid var(--orange); padding: 0 0 0 13px; margin-top: 12px; }
+    .callout h3 { color: #9a3412; }
+    .footer { position: absolute; bottom: 8mm; left: 12mm; right: 12mm; display: flex; justify-content: space-between; align-items: center; color: #98a2b3; font-size: 10px; border-top: 1px solid var(--line); padding-top: 7px; }
+    .avoid { page-break-inside: avoid; }
+    .cover .footer { border-top-color: rgba(255,255,255,.18); }
+    a { color: var(--blue); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <section class="page cover">
+    <div>
+      <div class="brand"><img src="assets/hanwha-logo.svg" alt="Hanwha" /><strong>한화손보 AI 생체정보 기반 상품 추천</strong></div>
+      <div style="margin-top:18mm;">
+        <p class="eyebrow">Competition Submission</p>
+        <h1>한화손보 AI 생체정보 기반 상품 추천</h1>
+        <p class="lead">카메라 기반 얼굴 인식으로 추정한 나이와 성별을 사용자가 확인한 뒤, 연령대·성별에 맞춘 한화손보 추천 상품을 보여주는 서비스입니다.</p>
+      </div>
+      <div class="meta">
+        <div><b>이용 채널</b><span>모바일과 PC에서 간편하게 접근</span></div>
+        <div><b>데이터 원칙</b><span>카메라 데이터 저장 없음</span></div>
+      </div>
+    </div>
+    <div class="hero-card">
+      <div class="hero-grid">
+        <div>
+          <h2>사용자는 얼굴을 스캔하고, 추천 상품을 바로 확인합니다.</h2>
+          <p>별도 앱 설치 없이 사용할 수 있으며, 카메라 권한 실패 또는 얼굴 미검출 시 수동 입력으로 흐름을 이어갈 수 있습니다.</p>
+        </div>
+        <div class="phone-mock"><img src="assets/01-intro.png" alt="서비스 메인 화면" /></div>
+      </div>
+    </div>
+    <div class="footer"><span>Submission PDF</span><span>2026-06-07</span></div>
+  </section>
+
+  <section class="page section">
+    <p class="eyebrow">01. Service Overview</p>
+    <h2>서비스 개요</h2>
+    <div class="two">
+      <div class="card">
+        <h3>문제 정의</h3>
+        <p>보험 상품은 종류와 설명이 많아 사용자가 첫 탐색 단계에서 어떤 상품부터 봐야 할지 결정하기 어렵습니다.</p>
+        <p>특히 모바일 환경에서는 긴 상품 목록보다 짧고 직관적인 추천 흐름이 필요합니다.</p>
+      </div>
+      <div class="card">
+        <h3>해결 접근</h3>
+        <p>얼굴 인식으로 추정한 나이·성별을 사용자가 직접 확인하고, 규칙 기반 추천 엔진이 2~4개의 상품을 우선 노출합니다.</p>
+        <p>추천 상품 카드는 썸네일, 추천 이유, 공식 출처 링크를 함께 제공합니다.</p>
+      </div>
+    </div>
+    <div class="tiles">
+      <div class="tile"><div class="num">1</div><b>카메라 기반 진입</b><span>얼굴 입체 스캔으로 나이·성별 추정</span></div>
+      <div class="tile"><div class="num">2</div><b>사용자 확인</b><span>추정값을 그대로 쓰지 않고 수정 가능</span></div>
+      <div class="tile"><div class="num">3</div><b>상품 큐레이션</b><span>연령대별 한화손보 상품 추천</span></div>
+      <div class="tile"><div class="num">4</div><b>간단한 이용 경험</b><span>가입 전 후보 상품을 빠르게 확인</span></div>
+    </div>
+    <div class="callout">
+      <h3>핵심 가치</h3>
+      <p>복잡한 보험 탐색의 첫 단계를 “나에게 맞는 후보 상품 4개 확인”으로 줄여, 사용자가 더 빠르게 공식 상품 정보를 살펴볼 수 있게 합니다.</p>
+    </div>
+    <div class="footer"><span>한화손보 AI 생체정보 기반 상품 추천</span><span>01</span></div>
+  </section>
+
+  <section class="page section">
+    <p class="eyebrow">02. User Flow</p>
+    <h2>사용자 흐름</h2>
+    <div class="flow">
+      <div>카메라 권한 허용</div>
+      <div>얼굴 입체 스캔</div>
+      <div>나이·성별 확인</div>
+      <div>추천 상품 확인</div>
+      <div>공식 출처 이동</div>
+    </div>
+    <div class="two">
+      <div class="avoid">
+        <img class="screenshot" src="assets/01-intro.png" alt="메인 화면" />
+        <p class="caption">메인 진입 화면: 카메라 분석 또는 수동 입력 선택</p>
+      </div>
+      <div class="card">
+        <h3>UX 설계 포인트</h3>
+        <ul class="compact-list">
+          <li>한 화면에서 서비스 목적과 카메라 사용 흐름을 이해할 수 있도록 구성</li>
+          <li>카메라 권한 실패, 얼굴 미검출, 낮은 신뢰도 상황에서 수동 입력 제공</li>
+          <li>나이·성별 추정값은 추천 전 사용자가 확인·수정 가능</li>
+          <li>결과 화면은 프로필 카드와 추천 상품 카드로 분리해 빠르게 탐색 가능</li>
+          <li>상품 카드에는 카테고리별 일러스트 썸네일을 적용해 시각적 구분 강화</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer"><span>한화손보 AI 생체정보 기반 상품 추천</span><span>02</span></div>
+  </section>
+
+  <section class="page section">
+    <p class="eyebrow">03. Face Scan Experience</p>
+    <h2>얼굴 입체 스캔 화면</h2>
+    <div class="scan-landscape-wrap">
+      <img class="scan-landscape-shot" src="assets/face-scan-landscape.png" alt="얼굴 입체 스캔 화면" />
+      <p class="caption">실제 데모 화면: 카메라 화면과 단계별 얼굴 방향 가이드</p>
+      <div class="scan-note">
+        <span class="tag blue">Guided scan</span>
+        <h3>사용자가 따라 하기 쉬운 얼굴 스캔</h3>
+        <ul>
+          <li>정면 → 한쪽 → 반대쪽 → 정면 복귀 흐름</li>
+          <li>카메라 프레임과 안내 패널 분리</li>
+          <li>스캔 실패 시 수동 입력으로 대체</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer"><span>한화손보 AI 생체정보 기반 상품 추천</span><span>03</span></div>
+  </section>
+
+  <section class="page section">
+    <p class="eyebrow">04. Result Experience</p>
+    <h2>추천 결과 화면</h2>
+    <div class="result-layout">
+      <div class="screenshot-card">
+        <img class="screenshot screenshot--fit" src="assets/02-result-30s.png" alt="30대 추천 결과 화면" />
+        <p class="caption">30대 남성 예시: 운전자 · 실손 · 화재 · 치아 상품 추천</p>
+      </div>
+      <div class="result-notes">
+        <div class="pillbox compact-card"><span class="tag blue">정보 확인</span><h3>분석/입력 정보</h3><p class="small">나이, 연령대, 성별을 좌측 카드에 고정해 추천 기준을 명확히 보여줍니다.</p></div>
+        <div class="pillbox compact-card"><span class="tag green">추천 이유</span><h3>문장형 설명</h3><p class="small">“왜 이 상품이 나왔는지”를 연령대 맥락으로 짧게 설명합니다.</p></div>
+        <div class="pillbox compact-card"><span class="tag">공식 출처</span><h3>상품 근거</h3><p class="small">각 카드 하단에 공식 출처 링크와 확인일을 함께 표시합니다.</p></div>
+      </div>
+    </div>
+    <div class="footer"><span>한화손보 AI 생체정보 기반 상품 추천</span><span>04</span></div>
+  </section>
+
+  <section class="page section">
+    <p class="eyebrow">05. Service Composition</p>
+    <h2>서비스 구성</h2>
+    <div class="diagram" style="margin-top:10px;">
+      <div class="box">
+        <strong>화면 경험</strong>
+        <ul>
+          <li>서비스 목적을 첫 화면에서 안내</li>
+          <li>카메라 시작과 수동 입력을 함께 제공</li>
+          <li>모바일과 PC 화면에 맞춘 구성</li>
+          <li>상품별 일러스트 썸네일 제공</li>
+        </ul>
+      </div>
+      <div class="box">
+        <strong>얼굴 분석 흐름</strong>
+        <ul>
+          <li>정면과 좌우 방향을 단계별로 안내</li>
+          <li>나이·성별 추정값을 화면에 표시</li>
+          <li>추천 전 사용자가 직접 확인</li>
+          <li>실패 시 수동 입력으로 대체</li>
+        </ul>
+      </div>
+      <div class="box">
+        <strong>추천 구성</strong>
+        <ul>
+          <li>연령대와 성별 확인값 반영</li>
+          <li>2~4개의 상품 후보 제공</li>
+          <li>카드별 추천 이유 표시</li>
+          <li>공식 출처 링크 연결</li>
+        </ul>
+      </div>
+    </div>
+    <div class="two" style="margin-top:12px;">
+      <div class="card compact-card">
+        <h3>간단한 이용 방식</h3>
+        <p>사용자는 카메라 분석 또는 수동 입력 중 하나를 선택하고, 확인된 정보에 맞춰 추천 상품을 바로 살펴볼 수 있습니다.</p>
+        <p><span class="tag gray">카메라 선택 가능</span><span class="tag gray">수동 입력 지원</span><span class="tag gray">공식 출처 연결</span></p>
+      </div>
+      <div class="card compact-card">
+        <h3>품질 확인</h3>
+        <p>추천 개수, 여성 건강 상품 노출, 20대·30대 실손 추천, 50대·60대 이상 추천 차이, 안내 문구 일관성을 확인했습니다.</p>
+        <p><span class="tag green">추천 흐름 확인</span><span class="tag blue">화면 구성 확인</span></p>
+      </div>
+    </div>
+    <div class="footer"><span>한화손보 AI 생체정보 기반 상품 추천</span><span>05</span></div>
+  </section>
+
+  <section class="page section">
+    <p class="eyebrow">06. Recommendation Logic</p>
+    <h2>추천 룰</h2>
+    <p class="small">얼굴 인식 결과가 직접 상품을 고르는 구조가 아니라, 사용자가 확인한 나이·성별을 기준으로 정적 규칙이 상품 후보를 선택합니다.</p>
+    <div class="rule-layout">
+      <div>
+        <table class="compact-table">
+          <thead><tr><th>연령대</th><th>기본 추천 상품 순서</th></tr></thead>
+          <tbody>
+            <tr><td>20대</td><td>캐롯 해외여행보험 → 한화실손의료보험 → 캐롯 운전자보험 → 치아안심보험</td></tr>
+            <tr><td>30대</td><td>캐롯 운전자보험 → 한화실손의료보험 → 다이렉트 119주택화재보험 → 치아안심보험</td></tr>
+            <tr><td>40대</td><td>다이렉트 내가고른암보험 → 한화 더건강한 한아름종합보험 → 캐롯 운전자보험 → 다이렉트 119주택화재보험</td></tr>
+            <tr><td>50대</td><td>한화 더건강한 한아름종합보험 → 다이렉트 내가고른암보험 → 다이렉트 119주택화재보험 → 치아안심보험</td></tr>
+            <tr><td>60대 이상</td><td>한화 더 경증 간편건강보험Ⅱ → 한화 더건강한 한아름종합보험 → 다이렉트 내가고른암보험 → 다이렉트 119주택화재보험</td></tr>
+          </tbody>
+        </table>
+        <div class="two" style="margin-top:10px;">
+          <div class="card compact-card">
+            <h3>성별 보정</h3>
+            <p>여성으로 확인된 경우 20대~50대 추천 목록 앞에 여성 건강 상품을 추가합니다.</p>
+          </div>
+          <div class="card compact-card">
+            <h3>나이 보정</h3>
+            <p>20세 미만 추정값은 추천 기준에서 최소 20대로 노출합니다.</p>
+          </div>
+        </div>
+      </div>
+      <div class="screenshot-card">
+        <img class="screenshot screenshot--mini" src="assets/03-result-60s.png" alt="60대 이상 추천 결과 화면" />
+        <p class="caption">60대 이상 예시: 간병/노후 니즈를 우선 반영한 추천</p>
+      </div>
+    </div>
+    <div class="footer"><span>한화손보 AI 생체정보 기반 상품 추천</span><span>06</span></div>
+  </section>
+
+  <section class="page section">
+    <p class="eyebrow">07. Product Pool & Sources</p>
+    <h2>추천에 사용한 상품 데이터</h2>
+    <p class="small">상품 카드는 한화손보/한화다이렉트 공식 공개 페이지와 약관 PDF에서 확인한 상품명을 바탕으로 구성했습니다. 구현 시점 확인일은 2026-06-07입니다.</p>
+    <table>
+      <thead><tr><th>카테고리</th><th>상품명</th><th>공식 출처</th></tr></thead>
+      <tbody>
+        <tr><td>운전자</td><td>캐롯 운전자보험</td><td>한화손보 캐롯 공식 홈페이지</td></tr>
+        <tr><td>암</td><td>다이렉트 내가고른암보험</td><td>한화다이렉트 메인</td></tr>
+        <tr><td>실손</td><td>한화실손의료보험(갱신형)</td><td>한화손보 실손의료보험 약관</td></tr>
+        <tr><td>여성 건강</td><td>한화 시그니처 여성 건강보험 4.0(무)</td><td>한화손보 캐롯 공식 홈페이지</td></tr>
+        <tr><td>화재</td><td>다이렉트 119주택화재보험</td><td>한화다이렉트 메인</td></tr>
+        <tr><td>치아</td><td>치아안심보험</td><td>한화손보 홈페이지</td></tr>
+        <tr><td>여행</td><td>캐롯 해외여행보험</td><td>한화손보 캐롯 공식 홈페이지</td></tr>
+        <tr><td>종합 건강</td><td>한화 더건강한 한아름종합보험(무)</td><td>한화 더건강한 한아름종합보험 상품 페이지</td></tr>
+        <tr><td>간병/노후</td><td>한화 더 경증 간편건강보험Ⅱ(세만기형)(무)</td><td>한화손보 간병인보험 상품 페이지</td></tr>
+        <tr><td>골프</td><td>다이렉트 홀인원보험</td><td>한화손보 캐롯 홀인원보험 페이지</td></tr>
+      </tbody>
+    </table>
+    <div class="callout">
+      <h3>상품공시 기반 확장 여지</h3>
+      <p>한화손보 보험상품공시의 현재판매상품에는 자동차보험, 장기보험, 일반보험, 퇴직연금 등 더 넓은 상품군이 존재합니다. 다음 단계에서는 저축, 연금, 장기간병, 상해/질병 상품까지 후보 풀을 확장할 수 있습니다.</p>
+    </div>
+    <div class="footer"><span>한화손보 AI 생체정보 기반 상품 추천</span><span>07</span></div>
+  </section>
+
+  <section class="page section">
+    <p class="eyebrow">08. Privacy, Safety & Expansion</p>
+    <h2>개인정보·안전성·확장 계획</h2>
+    <div class="two">
+      <div class="card">
+        <h3>개인정보 설계</h3>
+        <ul class="compact-list">
+          <li>카메라 데이터는 저장하지 않음</li>
+          <li>이미지 파일 저장 없음</li>
+          <li>서버 업로드 없음</li>
+          <li>얼굴 추정값은 사용자가 수정 가능</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>운영 안전성</h3>
+        <ul class="compact-list">
+          <li>계약 가능 여부 판단 없음</li>
+          <li>보험료 산출 없음</li>
+          <li>상품 추천은 공식 출처 탐색을 돕는 후보 제시</li>
+          <li>카메라 실패 시 수동 입력으로 대체</li>
+        </ul>
+      </div>
+    </div>
+    <div class="tiles">
+      <div class="tile"><div class="num">A</div><b>표정 기반 테마 추천</b><span>감정명을 직접 노출하지 않고 활동형/안정형 보조 정렬로 확장</span></div>
+      <div class="tile"><div class="num">B</div><b>상품공시 전체 연동</b><span>현재판매상품 공시 기준으로 후보 풀 자동 갱신</span></div>
+      <div class="tile"><div class="num">C</div><b>추천 설명 고도화</b><span>연령·라이프스타일 질문을 추가해 추천 이유 강화</span></div>
+      <div class="tile"><div class="num">D</div><b>접근성 개선</b><span>고대비 모드, 스크린리더 문구, 키보드 조작성 보강</span></div>
+    </div>
+    <div class="callout">
+      <h3>제출 버전 요약</h3>
+      <p>본 출품 버전은 “카메라 기반 얼굴 인식 → 사용자 확인 → 추천 상품 확인 → 공식 출처 확인”의 핵심 흐름을 완성한 서비스입니다.</p>
+    </div>
+    <div class="footer"><span>한화손보 AI 생체정보 기반 상품 추천</span><span>08</span></div>
+  </section>
+
+  <section class="page section">
+    <p class="eyebrow">Appendix</p>
+    <h2>제출 확인 항목</h2>
+    <div class="two">
+      <div class="card compact-card">
+        <h3>시연 준비</h3>
+        <p>카메라 권한을 허용하면 얼굴 입체 스캔 흐름으로 이동하고, 권한을 허용하지 않아도 수동 입력으로 추천 결과를 확인할 수 있습니다.</p>
+      </div>
+      <div class="card compact-card">
+        <h3>검증 요약</h3>
+        <p>카메라 진입, 수동 입력, 연령대별 추천, 여성 건강 상품 보정, 공식 출처 이동, 반응형 화면 구성을 확인했습니다.</p>
+      </div>
+    </div>
+    <div class="card compact-card" style="margin-top:12px;">
+      <h3>제출 범위</h3>
+      <table>
+        <tbody>
+          <tr><td>서비스 화면</td><td>메인, 얼굴 입체 스캔, 추정값 확인, 추천 결과 화면</td></tr>
+          <tr><td>추천 상품</td><td>운전자, 암, 실손, 여성 건강, 화재, 치아, 여행, 종합 건강, 간병/노후, 골프</td></tr>
+          <tr><td>대체 흐름</td><td>카메라 권한 실패 또는 얼굴 미검출 시 수동 입력 제공</td></tr>
+          <tr><td>출처 확인</td><td>상품 카드에서 공식 출처 링크 제공</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="footer"><span>한화손보 AI 생체정보 기반 상품 추천</span><span>09</span></div>
+  </section>
+</body>
+</html>
