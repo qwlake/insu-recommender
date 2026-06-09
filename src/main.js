@@ -149,7 +149,18 @@ function renderCamera() {
       <div class="camera-grid">
         <div class="video-wrap">
           <video id="camera-video" autoplay muted playsinline></video>
-          <div class="video-overlay"><span>얼굴을 가이드 안에 맞춰주세요</span></div>
+          <div class="scan-hud" aria-hidden="true">
+            <div class="scan-grid"></div>
+            <div class="scan-line"></div>
+            <div class="face-frame">
+              <span class="corner top-left"></span>
+              <span class="corner top-right"></span>
+              <span class="corner bottom-left"></span>
+              <span class="corner bottom-right"></span>
+            </div>
+            <div class="scan-pulse"></div>
+          </div>
+          <div class="video-overlay"><span id="video-overlay-label">얼굴을 가이드 안에 맞춰주세요</span></div>
         </div>
         <aside class="status-panel card inner-card">
           <p class="eyebrow">Guided scan</p>
@@ -183,9 +194,19 @@ function setStatus(status) {
 function updateScanUi({ progress = 0, phase = '', samplesCaptured = 0, yawDegrees = null, completedSteps = [] }) {
   const phaseEl = document.querySelector('#scan-phase');
   const barEl = document.querySelector('#scan-progress-bar');
+  const videoWrap = document.querySelector('.video-wrap');
+  const overlayLabel = document.querySelector('#video-overlay-label');
   const pct = Math.min(100, Math.max(0, Math.round(progress * 100)));
-  if (phaseEl) phaseEl.textContent = phase || '얼굴을 화면 안에 맞춰주세요.';
+  const phaseText = phase || '얼굴을 화면 안에 맞춰주세요.';
+  if (phaseEl) phaseEl.textContent = phaseText;
+  if (overlayLabel) overlayLabel.textContent = pct >= 100 ? '스캔 완료' : phaseText;
   if (barEl) barEl.style.width = `${pct}%`;
+  if (videoWrap) {
+    videoWrap.classList.add('is-scanning');
+    videoWrap.classList.toggle('scan-complete', pct >= 100);
+    videoWrap.style.setProperty('--scan-progress', `${pct}%`);
+    videoWrap.style.setProperty('--scan-y', `${pct * 2.3}px`);
+  }
 
   document.querySelectorAll('#scan-steps [data-step]').forEach((stepEl) => {
     const isDone = completedSteps.includes(stepEl.dataset.step);
