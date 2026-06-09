@@ -46,6 +46,20 @@ function isDebugMode() {
   }
 }
 
+function delay(ms) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
+}
+
+function shortTransitionMs(ms = 980) {
+  try {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 160 : ms;
+  } catch {
+    return ms;
+  }
+}
+
 function debugNotice() {
   if (!isDebugMode()) return '';
   return '<div class="notice debug">디버그 모드: 나이·성별·품질 점수 숫자만 dev 서버 로그로 전송됩니다.</div>';
@@ -117,6 +131,31 @@ function renderLoading(status = COPY.loadingModel) {
   `);
   document.querySelector('#back-home').addEventListener('click', renderIntro);
 }
+
+async function renderAnalysisTransition({
+  eyebrow = 'AI scan',
+  title = '분석 결과를 정리하는 중입니다',
+  body = '잠시 후 다음 화면으로 이동합니다.',
+  steps = ['스캔 완료', '추정값 정리', '화면 준비'],
+  durationMs = 980,
+} = {}) {
+  baseShell(`
+    <section class="card center-card transition-card" aria-live="polite">
+      <div class="transition-orb" aria-hidden="true">
+        <span></span>
+      </div>
+      <p class="eyebrow">${escapeHtml(eyebrow)}</p>
+      <h1 class="page-title">${escapeHtml(title)}</h1>
+      <p class="muted">${escapeHtml(body)}</p>
+      <ol class="transition-steps">
+        ${steps.map((step, index) => `<li style="--step-index:${index}"><span>✓</span>${escapeHtml(step)}</li>`).join('')}
+      </ol>
+    </section>
+  `);
+
+  await delay(shortTransitionMs(durationMs));
+}
+
 
 async function handleStartCamera() {
   if (!isCameraSupported()) {
@@ -237,6 +276,13 @@ async function handleAnalyze() {
     }
     currentProfile = result;
     stopActiveCamera();
+    await renderAnalysisTransition({
+      eyebrow: 'Scan complete',
+      title: '얼굴 입체 스캔이 완료되었습니다',
+      body: '추정된 나이와 성별을 확인 화면으로 정리하고 있습니다.',
+      steps: ['스캔 완료', '추정값 정리', '확인 화면 준비'],
+      durationMs: 920,
+    });
     renderProfileConfirm(result);
   } catch (error) {
     renderFallback('얼굴 분석 중 문제가 발생했습니다. 수동 입력을 사용할 수 있습니다.');
@@ -283,7 +329,7 @@ function renderProfileConfirm(profile) {
     </section>
   `);
 
-  document.querySelector('#confirm-form').addEventListener('submit', (event) => {
+  document.querySelector('#confirm-form').addEventListener('submit', async (event) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const numericAge = recommendationAge(form.get('age'));
@@ -297,6 +343,13 @@ function renderProfileConfirm(profile) {
       confirmed: true,
     };
     currentProfile = confirmedProfile;
+    await renderAnalysisTransition({
+      eyebrow: 'Recommendation',
+      title: '추천 상품을 구성하는 중입니다',
+      body: '확인된 나이와 성별을 기준으로 상품 카드를 준비하고 있습니다.',
+      steps: ['기준값 확인', '추천 상품 구성', '공식 출처 연결'],
+      durationMs: 820,
+    });
     renderResult(confirmedProfile, 'confirmed');
   });
   document.querySelector('#retry-camera').addEventListener('click', handleStartCamera);
@@ -332,7 +385,7 @@ function renderFallback(reason, partialProfile = null) {
       </form>
     </section>
   `);
-  document.querySelector('#manual-form').addEventListener('submit', (event) => {
+  document.querySelector('#manual-form').addEventListener('submit', async (event) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const numericAge = recommendationAge(form.get('age'));
@@ -346,6 +399,13 @@ function renderFallback(reason, partialProfile = null) {
       manual: true,
     };
     currentProfile = profile;
+    await renderAnalysisTransition({
+      eyebrow: 'Recommendation',
+      title: '추천 상품을 구성하는 중입니다',
+      body: '입력한 나이와 성별을 기준으로 상품 카드를 준비하고 있습니다.',
+      steps: ['입력값 확인', '추천 상품 구성', '공식 출처 연결'],
+      durationMs: 820,
+    });
     renderResult(profile, 'manual');
   });
   document.querySelector('#retry-camera').addEventListener('click', handleStartCamera);
