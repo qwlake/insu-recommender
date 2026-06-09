@@ -331,6 +331,62 @@ function updateScanState(state, face) {
   };
 }
 
+function isDebugEnabled() {
+  try {
+    const params = new URLSearchParams(globalThis.location?.search || '');
+    return params.has('debug');
+  } catch {
+    return false;
+  }
+}
+
+function toDebugPayload(event, payload) {
+  return {
+    event,
+    ...payload,
+    source: 'client-face-analyzer',
+  };
+}
+
+function postDebugEvent(event, payload) {
+  if (!isDebugEnabled()) return;
+  try {
+    const body = JSON.stringify(toDebugPayload(event, payload));
+    fetch('/__face_debug', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+      keepalive: body.length < 60000,
+    }).catch(() => {});
+  } catch {
+    // diagnostics are optional and must never affect the user flow
+  }
+}
+
+function maybeLogDiagnostics(profile, faces, metadata = {}) {
+  if (!isDebugEnabled()) return;
+  try {
+    const samples = faces.filter(Boolean).map(normalizeFaceSample);
+    const payload = {
+      framesRequested: metadata.framesRequested || EXPECTED_ANALYSIS_SAMPLE_COUNT,
+      durationMs: metadata.durationMs || GUIDED_SCAN_TIMEOUT_MS,
+      facesDetected: faces.length,
+      scanCompleted: Boolean(metadata.scanCompleted),
+      completedSteps: metadata.completedSteps || [],
+      samples,
+      apparentAge: profile.apparentAge,
+      apparentGender: profile.apparentGender,
+      genderConfidence: profile.genderConfidence,
+      faceConfidence: profile.faceConfidence,
+      uncertainReason: profile.uncertainReason,
+    };
+    console.info('[face-analyzer]', payload);
+    postDebugEvent('face-scan-summary', payload);
+  } catch {
+    // diagnostics are optional and must never affect the user flow
+  }
+}
+
 function emitProgress(onProgress, payload) {
   if (typeof onProgress === 'function') {
     onProgress(payload);
@@ -344,6 +400,7 @@ export async function analyzeFace(videoElement, options = {}) {
   const faces = [];
   const scanState = createScanState();
   const startedAt = performance.now();
+  let sampleIndex = 0;
   let scanInfo = {
     step: scanState.step,
     phase: scanStepLabel(scanState.step),
@@ -372,6 +429,19 @@ export async function analyzeFace(videoElement, options = {}) {
       scanCompleted: scanInfo.scanCompleted,
     });
 
+    sampleIndex += 1;
+    postDebugEvent('face-scan-sample', {
+      sampleIndex,
+      elapsedMs: Math.round(performance.now() - startedAt),
+      durationMs: GUIDED_SCAN_TIMEOUT_MS,
+      phase: scanInfo.phase,
+      step: scanInfo.step,
+      completedSteps: scanInfo.completedSteps,
+      scanCompleted: scanInfo.scanCompleted,
+      yawDegrees: scanInfo.yawDegrees,
+      sample: face ? normalizeFaceSample(face) : null,
+    });
+
     const remainingMs = GUIDED_SCAN_TIMEOUT_MS - (performance.now() - startedAt);
     if (remainingMs <= 0) break;
     await waitForVideoSample(videoElement, Math.min(ANALYSIS_SAMPLE_INTERVAL_MS, remainingMs));
@@ -391,6 +461,12 @@ export async function analyzeFace(videoElement, options = {}) {
     step: scanInfo.step,
     completedSteps: scanInfo.completedSteps,
     scanCompleted: scanInfo.scanCompleted,
+  });
+  maybeLogDiagnostics(profile, faces, {
+    durationMs,
+    framesRequested: EXPECTED_ANALYSIS_SAMPLE_COUNT,
+    scanCompleted: scanInfo.scanCompleted,
+    completedSteps: scanInfo.completedSteps,
   });
   return profile;
 }

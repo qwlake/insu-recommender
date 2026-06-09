@@ -38,6 +38,14 @@ function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;' }[char]));
 }
 
+function isDebugMode() {
+  try {
+    return new URLSearchParams(window.location.search).has('debug');
+  } catch {
+    return false;
+  }
+}
+
 function delay(ms) {
   return new Promise((resolve) => {
     window.setTimeout(resolve, ms);
@@ -50,6 +58,11 @@ function shortTransitionMs(ms = 980) {
   } catch {
     return ms;
   }
+}
+
+function debugNotice() {
+  if (!isDebugMode()) return '';
+  return '<div class="notice debug">디버그 모드: 나이·성별·품질 점수 숫자만 dev 서버 로그로 전송됩니다.</div>';
 }
 
 function baseShell(content) {
@@ -86,6 +99,7 @@ function renderIntro() {
           <div><b>2</b><span>얼굴 입체 스캔</span></div>
           <div><b>3</b><span>상품 확인</span></div>
         </div>
+        ${debugNotice()}
         <div class="actions">
           <button class="btn orange" id="start-camera">${COPY.startButton}</button>
           <button class="btn secondary" id="manual-start">${COPY.manualButton}</button>
@@ -198,6 +212,7 @@ function renderCamera() {
             <li data-step="center-end"><span class="step-mark">4</span><span class="step-copy">정면 복귀</span></li>
           </ol>
           <div class="status-line" id="status-line">카메라 준비 중…</div>
+          ${debugNotice()}
           <button class="btn orange" id="analyze-face">${COPY.analyzeButton}</button>
           <button class="btn secondary" id="manual-fallback">${COPY.manualButton}</button>
           <button class="btn secondary" id="stop-camera">${COPY.stopCameraButton}</button>

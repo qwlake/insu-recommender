@@ -96,7 +96,7 @@
   - Use generous spacing, restrained motion, high readability, and stable layouts.
 - Tradeoffs:
   - ML library size is acceptable for prototype if loading state and manual fallback are strong.
-  - Do not send face-analysis diagnostics off-page; camera and inference outputs stay in the browser.
+  - Debug-mode numeric logging is acceptable on `develop` for local diagnosis; public/release branches should not ship off-page face-analysis diagnostics.
 
 ## Visual language
 - Color:
@@ -135,7 +135,7 @@
   - Product card source/caveat layout refinement.
 - Variants and states:
   - Buttons: primary orange, secondary white, dark/navy optional; disabled visible.
-  - Notice: warm disclaimer, compact caveat.
+  - Notice: warm disclaimer, debug notice, compact caveat.
   - Scan steps: pending, done.
   - Product cards: default, hover/focus.
 - Token/component ownership:
@@ -213,6 +213,6 @@
   - No added banned copy or lead-capture fields.
 
 ## Open questions
-- [x] Remove debug-mode numeric logging from demo builds. / owner: product-dev / impact: privacy messaging clarity
+- [x] Keep debug-mode numeric logging on `develop` only; keep public/release branches free of face-analysis collection. / owner: product-dev / impact: privacy messaging clarity
 - [ ] Is there an official Hanwha brand guideline asset/color palette to align with beyond the current orange/navy inference? / owner: design/product / impact: brand fidelity
 - [ ] Should a future visual reference be generated and matched with `$visual-ralph` after this design contract? / owner: user / impact: pixel-level polish
