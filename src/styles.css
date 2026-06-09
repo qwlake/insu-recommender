@@ -648,7 +648,6 @@ video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); dis
   .status-panel {
     max-width: none;
     justify-self: stretch;
-    order: -1;
   }
 }
 
@@ -662,6 +661,78 @@ video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); dis
   .video-wrap { min-height: 240px; }
   h1 { font-size: clamp(1.65rem, 7vw, 2.35rem); }
   .page-title { font-size: 2.2rem; }
+  .camera-stage {
+    gap: 12px;
+    padding: 16px;
+  }
+  .camera-stage > div:first-child {
+    display: grid;
+    gap: 6px;
+  }
+  .camera-stage .page-title {
+    font-size: clamp(1.35rem, 5.8vw, 1.85rem);
+    margin-bottom: 0;
+  }
+  .camera-stage > div:first-child .muted {
+    margin-bottom: 0;
+    font-size: .9rem;
+    line-height: 1.42;
+  }
+  .camera-stage .camera-grid {
+    gap: 12px;
+  }
+  .camera-stage .video-wrap {
+    min-height: 0;
+    border-radius: 20px;
+  }
+  .camera-stage .status-panel {
+    gap: 10px;
+    padding: 14px;
+    border-radius: 20px;
+  }
+  .camera-stage .status-panel .eyebrow {
+    margin-bottom: 0;
+    font-size: .82rem;
+  }
+  .camera-stage .scan-phase {
+    padding: 12px 13px;
+    border-radius: 16px;
+    font-size: .96rem;
+  }
+  .camera-stage .scan-progress {
+    height: 8px;
+  }
+  .camera-stage .scan-steps {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+  .camera-stage .scan-steps li {
+    min-height: 58px;
+    padding: 7px 4px;
+    border-radius: 14px;
+    gap: 4px;
+    font-size: .68rem;
+  }
+  .camera-stage .scan-steps li::after {
+    inset: auto 7px 6px;
+    height: 2px;
+  }
+  .camera-stage .step-mark {
+    width: 26px;
+    height: 26px;
+    font-size: .78rem;
+  }
+  .camera-stage .status-line {
+    padding: 9px 10px;
+    border-radius: 12px;
+    font-size: .78rem;
+  }
+  .camera-stage .btn {
+    min-height: 38px;
+    padding: 8px 11px;
+    border-radius: 12px;
+    font-size: .86rem;
+  }
 }
 
 @media (max-width: 520px) {
@@ -670,4 +741,27 @@ video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); dis
   .scan-steps { grid-template-columns: repeat(2, 1fr); }
   .actions .btn { width: 100%; }
   .metric { grid-template-columns: 96px 1fr; }
+  .camera-stage {
+    padding: 13px;
+  }
+  .camera-stage .scan-steps {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .camera-stage .scan-steps li {
+    min-height: 52px;
+    font-size: .62rem;
+  }
+  .camera-stage .step-mark {
+    width: 24px;
+    height: 24px;
+  }
+  .camera-stage .video-overlay {
+    inset: 10px;
+    border-radius: 16px;
+  }
+  .camera-stage .video-overlay span {
+    margin-bottom: 8px;
+    padding: 6px 9px;
+    font-size: .72rem;
+  }
 }

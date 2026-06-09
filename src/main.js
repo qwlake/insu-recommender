@@ -9,6 +9,7 @@ const app = document.querySelector('#app');
 let stream = null;
 let currentProfile = null;
 const MIN_RECOMMENDATION_AGE = 20;
+const assetUrl = (path) => `${import.meta.env.BASE_URL}${path}`;
 
 function genderLabel(gender) {
   return ({ female: '여성 추정', male: '남성 추정', unknown: '미확인' })[gender] || '미확인';
@@ -71,7 +72,7 @@ function baseShell(content) {
       <div class="container">
         <header class="app-header" aria-label="서비스 정보">
           <div class="brand-lockup">
-            <img class="brand-logo" src="/hanwha-logo.svg" alt="Hanwha" width="145" height="40" />
+            <img class="brand-logo" src="${assetUrl('hanwha-logo.svg')}" alt="Hanwha" width="145" height="40" />
             <div>
               <strong>${COPY.appTitle}</strong>
             </div>
@@ -180,7 +181,7 @@ async function handleStartCamera() {
 
 function renderCamera() {
   baseShell(`
-    <section class="card stage">
+    <section class="card stage camera-stage">
       <div>
         <h1 class="page-title">단계에 따라 얼굴을 입체적으로 분석합니다</h1>
         <p class="muted">안내가 바뀔 때까지 천천히 움직이면 됩니다. 라이브 프레임만 브라우저 메모리에서 분석합니다.</p>
