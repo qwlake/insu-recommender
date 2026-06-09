@@ -49,11 +49,11 @@ export async function loadFaceAnalyzer(onStatus = () => {}) {
   if (loadPromise) return loadPromise;
 
   loadPromise = (async () => {
-    onStatus('모델 모듈을 불러오는 중입니다.');
+    onStatus('모델 모듈을 불러오고 있습니다.');
     const module = await import('@vladmandic/human');
     const Human = module.default || module.Human;
     humanInstance = new Human(HUMAN_CONFIG);
-    onStatus('분석 모델을 초기화하는 중입니다.');
+    onStatus('분석 모델을 초기화하고 있습니다.');
     await humanInstance.load();
     await humanInstance.warmup();
     onStatus('분석 모델 준비가 완료되었습니다.');
@@ -236,7 +236,7 @@ export function summarizeFaceSamples(faces, requestedSamples = EXPECTED_ANALYSIS
   const uncertain = [];
 
   if (!apparentAge) uncertain.push(`나이 추정값이 불안정합니다. (${ageSamples.length}/${requestedSamples}프레임)`);
-  if (apparentGender === 'unknown') uncertain.push(`성별 추정값이 불확실합니다. (최고 ${Math.round(genderConfidence * 100)}%)`);
+  if (apparentGender === 'unknown') uncertain.push(`성별 추정값을 확정하기 어렵습니다. (최고 ${Math.round(genderConfidence * 100)}%)`);
   if (faceConfidence && faceConfidence < MIN_FACE_CONFIDENCE) uncertain.push(`얼굴 감지 품질이 낮습니다. (${Math.round(faceConfidence * 100)}%)`);
 
   return {
@@ -260,12 +260,12 @@ function createScanState() {
 
 function scanStepLabel(step) {
   return ({
-    [SCAN_STEPS.CENTER_START]: '정면을 화면 중앙에 맞춰주세요',
-    [SCAN_STEPS.FIRST_SIDE]: '좋아요. 얼굴을 한쪽으로 천천히 돌려주세요',
-    [SCAN_STEPS.OPPOSITE_SIDE]: '좋아요. 이제 반대쪽으로 천천히 돌려주세요',
+    [SCAN_STEPS.CENTER_START]: '정면이 화면 중앙에 오도록 맞춰주세요',
+    [SCAN_STEPS.FIRST_SIDE]: '좋습니다. 얼굴을 한쪽으로 천천히 돌려주세요',
+    [SCAN_STEPS.OPPOSITE_SIDE]: '좋습니다. 이제 반대쪽으로 천천히 돌려주세요',
     [SCAN_STEPS.CENTER_END]: '마지막으로 다시 정면을 바라봐 주세요',
-    [SCAN_STEPS.DONE]: '스캔 완료. 결과를 정리하는 중입니다',
-  })[step] || '얼굴을 화면 안에 맞춰주세요';
+    [SCAN_STEPS.DONE]: '스캔 완료. 결과를 정리하고 있습니다',
+  })[step] || '얼굴이 화면 안에 들어오게 맞춰주세요';
 }
 
 function completedScanProgress(state) {
@@ -289,7 +289,7 @@ function updateScanState(state, face) {
     return {
       yawDegrees,
       step: state.step,
-      phase: face ? scanStepLabel(state.step) : '얼굴을 화면 중앙에 맞춰주세요',
+      phase: face ? scanStepLabel(state.step) : '얼굴이 화면 중앙에 오도록 맞춰주세요',
       completedSteps: [...state.completedSteps],
       scanCompleted: state.step === SCAN_STEPS.DONE,
     };
@@ -300,7 +300,7 @@ function updateScanState(state, face) {
     return {
       yawDegrees,
       step: state.step,
-      phase: `${scanStepLabel(state.step)} · 조금만 유지해 주세요`,
+      phase: `${scanStepLabel(state.step)} · 잠시 유지해 주세요`,
       completedSteps: [...state.completedSteps],
       scanCompleted: false,
     };
@@ -385,7 +385,7 @@ export async function analyzeFace(videoElement, options = {}) {
     elapsedMs: durationMs,
     durationMs: GUIDED_SCAN_TIMEOUT_MS,
     progress: 1,
-    phase: '분석 결과를 정리하는 중입니다',
+    phase: '분석 결과를 정리하고 있습니다',
     samplesCaptured: faces.length,
     yawDegrees: scanInfo.yawDegrees,
     step: scanInfo.step,
