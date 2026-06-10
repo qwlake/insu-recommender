@@ -1,7 +1,7 @@
 import './styles.css';
 import { COPY } from './copy.js';
 import { startCamera, stopCamera, describeCameraError, isCameraSupported } from './camera.js';
-import { loadFaceAnalyzer, analyzeFace } from './faceAnalyzer.js';
+import { loadFaceAnalyzer, analyzeFace, detectFacePresence } from './faceAnalyzer.js';
 import { recommend, recommendationReason } from './recommendations.js';
 import { ageBucket, ageBucketLabel } from './utils/ageBucket.js';
 
@@ -9,7 +9,15 @@ const app = document.querySelector('#app');
 let stream = null;
 let currentProfile = null;
 const MIN_RECOMMENDATION_AGE = 20;
+const AUTO_SCAN_FACE_CONFIDENCE = 0.45;
+const AUTO_SCAN_REQUIRED_HITS = 3;
+const AUTO_SCAN_POLL_MS = 320;
+const AUTO_SCAN_EFFECT_MS = 560;
 const assetUrl = (path) => `${import.meta.env.BASE_URL}${path}`;
+let autoScanTimer = null;
+let autoScanInFlight = false;
+let autoScanStableHits = 0;
+let autoScanStarting = false;
 
 function genderLabel(gender) {
   return ({ female: '여성 추정', male: '남성 추정', unknown: '미확인' })[gender] || '미확인';
@@ -43,6 +51,37 @@ function delay(ms) {
   return new Promise((resolve) => {
     window.setTimeout(resolve, ms);
   });
+}
+
+function setCameraFeedback(message) {
+  const phaseEl = document.querySelector('#scan-phase');
+  const overlayLabel = document.querySelector('#video-overlay-label');
+  if (phaseEl) phaseEl.textContent = message;
+  if (overlayLabel) overlayLabel.textContent = message;
+}
+
+function clearAutoScanEffect() {
+  const videoWrap = document.querySelector('.video-wrap');
+  if (!videoWrap) return;
+  videoWrap.classList.remove('face-detected', 'auto-scan-starting');
+}
+
+function stopAutoScanWatcher({ keepEffect = false } = {}) {
+  if (autoScanTimer) {
+    window.clearTimeout(autoScanTimer);
+    autoScanTimer = null;
+  }
+  autoScanStableHits = 0;
+  autoScanStarting = false;
+  if (!keepEffect) clearAutoScanEffect();
+}
+
+async function waitForAutoScanIdle() {
+  let guard = 0;
+  while (autoScanInFlight && guard < 12) {
+    await delay(34);
+    guard += 1;
+  }
 }
 
 function shortTransitionMs(ms = 980) {
@@ -160,6 +199,8 @@ async function handleStartCamera() {
     const video = document.querySelector('#camera-video');
     stream = await startCamera(video);
     setStatus(COPY.cameraReady);
+    setCameraFeedback('얼굴이 가이드 안에 들어오면 자동으로 시작합니다');
+    startAutoScanWatcher(video);
   } catch (error) {
     renderFallback(describeCameraError(error));
   }
@@ -211,6 +252,85 @@ function renderCamera() {
   document.querySelector('#stop-camera').addEventListener('click', renderIntro);
 }
 
+function scheduleAutoScanTick(video) {
+  autoScanTimer = window.setTimeout(() => {
+    runAutoScanTick(video);
+  }, AUTO_SCAN_POLL_MS);
+}
+
+function startAutoScanWatcher(video) {
+  stopAutoScanWatcher();
+  if (!video) return;
+  scheduleAutoScanTick(video);
+}
+
+function markFaceDetected(confidence) {
+  const videoWrap = document.querySelector('.video-wrap');
+  if (videoWrap) videoWrap.classList.add('face-detected');
+  const pct = Math.round(confidence * 100);
+  setCameraFeedback('얼굴을 감지했습니다. 스캔을 준비합니다');
+  setStatus(`얼굴 감지됨 · 자동 시작 준비 ${autoScanStableHits}/${AUTO_SCAN_REQUIRED_HITS} · 품질 ${pct}%`);
+}
+
+async function triggerAutoScanStart(video) {
+  autoScanStarting = true;
+  if (autoScanTimer) {
+    window.clearTimeout(autoScanTimer);
+    autoScanTimer = null;
+  }
+
+  const videoWrap = document.querySelector('.video-wrap');
+  if (videoWrap) videoWrap.classList.add('face-detected', 'auto-scan-starting');
+  setCameraFeedback('스캔을 자동으로 시작합니다');
+  setStatus('얼굴 감지 완료 · 자동 스캔 시작');
+
+  const button = document.querySelector('#analyze-face');
+  if (button) button.disabled = true;
+
+  await delay(shortTransitionMs(AUTO_SCAN_EFFECT_MS));
+  if (!video?.isConnected || !stream) return;
+  await handleAnalyze({ autoStarted: true });
+}
+
+async function runAutoScanTick(video) {
+  if (autoScanStarting || autoScanInFlight || !video?.isConnected || !stream) return;
+  if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
+    scheduleAutoScanTick(video);
+    return;
+  }
+
+  let shouldStart = false;
+  autoScanInFlight = true;
+  try {
+    const presence = await detectFacePresence(video);
+    if (presence.detected && presence.faceConfidence >= AUTO_SCAN_FACE_CONFIDENCE) {
+      autoScanStableHits += 1;
+      markFaceDetected(presence.faceConfidence);
+      shouldStart = autoScanStableHits >= AUTO_SCAN_REQUIRED_HITS;
+    } else {
+      autoScanStableHits = 0;
+      clearAutoScanEffect();
+      setCameraFeedback('얼굴이 가이드 안에 들어오면 자동으로 시작합니다');
+      setStatus(COPY.cameraReady);
+    }
+  } catch (error) {
+    autoScanStableHits = 0;
+    clearAutoScanEffect();
+    setStatus('자동 감지 대기 중입니다. 필요하면 버튼으로 시작하세요.');
+  } finally {
+    autoScanInFlight = false;
+  }
+
+  if (shouldStart) {
+    await triggerAutoScanStart(video);
+    return;
+  }
+
+  if (!autoScanStarting && video?.isConnected && stream) {
+    scheduleAutoScanTick(video);
+  }
+}
+
 function setStatus(status) {
   const el = document.querySelector('#status-line');
   if (el) el.textContent = status;
@@ -246,11 +366,14 @@ function updateScanUi({ progress = 0, phase = '', samplesCaptured = 0, yawDegree
   setStatus(`스캔 진행 ${pct}% · 샘플 ${samplesCaptured}개${yawText}`);
 }
 
-async function handleAnalyze() {
+async function handleAnalyze({ autoStarted = false } = {}) {
+  stopAutoScanWatcher({ keepEffect: autoStarted });
+  if (!autoStarted) await waitForAutoScanIdle();
+
   const video = document.querySelector('#camera-video');
   const button = document.querySelector('#analyze-face');
   try {
-    button.disabled = true;
+    if (button) button.disabled = true;
     setStatus(COPY.analyzing);
     const result = await analyzeFace(video, {
       onProgress: updateScanUi,
@@ -586,6 +709,7 @@ function productThumbnailArt(productId) {
 }
 
 function stopActiveCamera() {
+  stopAutoScanWatcher();
   if (stream) {
     stopCamera(stream);
     stream = null;

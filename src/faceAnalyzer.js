@@ -249,6 +249,28 @@ export function summarizeFaceSamples(faces, requestedSamples = EXPECTED_ANALYSIS
   };
 }
 
+export async function detectFacePresence(videoElement) {
+  await loadFaceAnalyzer();
+  if (!humanInstance) throw new Error('face-analyzer-not-loaded');
+
+  const result = await humanInstance.detect(videoElement);
+  const face = result?.face?.[0];
+  if (!face) {
+    return {
+      detected: false,
+      faceConfidence: 0,
+      yawDegrees: null,
+    };
+  }
+
+  const sample = normalizeFaceSample(face);
+  return {
+    detected: sample.faceConfidence > 0,
+    faceConfidence: sample.faceConfidence,
+    yawDegrees: sample.yawDegrees,
+  };
+}
+
 function createScanState() {
   return {
     step: SCAN_STEPS.CENTER_START,

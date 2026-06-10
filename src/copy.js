@@ -13,7 +13,7 @@ export const COPY = Object.freeze({
   analyzeButton: '얼굴 입체 스캔 시작',
   stopCameraButton: '카메라 끄기',
   loadingModel: '분석 모델을 준비하고 있습니다',
-  cameraReady: '카메라가 준비되었습니다. 안내가 바뀔 때까지 천천히 움직여 주세요.',
+  cameraReady: '얼굴을 찾으면 자동으로 스캔을 시작합니다.',
   analyzing: '얼굴 방향과 여러 각도의 프레임을 분석하고 있습니다...',
   estimateBadge: '추정 결과',
   productSourceLabel: '공식 출처 보기',
