@@ -56,9 +56,7 @@ function delay(ms) {
 }
 
 function setCameraFeedback(message) {
-  const phaseEl = document.querySelector('#scan-phase');
   const overlayLabel = document.querySelector('#video-overlay-label');
-  if (phaseEl) phaseEl.textContent = message;
   if (overlayLabel) overlayLabel.textContent = message;
 }
 
@@ -283,13 +281,12 @@ function renderCamera() {
         </div>
         <aside class="status-panel card inner-card">
           <p class="eyebrow">Guided scan</p>
-          <div class="scan-phase" id="scan-phase">준비되면 스캔을 시작하세요.</div>
           <div class="scan-progress"><span id="scan-progress-bar"></span></div>
           <button class="btn orange" id="analyze-face">${COPY.analyzeButton}</button>
           <button class="btn secondary hidden" id="stop-scan">${COPY.stopScanButton}</button>
           <ol class="scan-steps" id="scan-steps">
             <li data-step="center-start"><span class="step-mark">1</span><span class="step-copy">정면</span></li>
-            <li data-step="first-side"><span class="step-mark">2</span><span class="step-copy">한쪽</span></li>
+            <li data-step="first-side"><span class="step-mark">2</span><span class="step-copy">옆면</span></li>
             <li data-step="opposite-side"><span class="step-mark">3</span><span class="step-copy">반대쪽</span></li>
             <li data-step="center-end"><span class="step-mark">4</span><span class="step-copy">정면 복귀</span></li>
           </ol>
@@ -388,13 +385,11 @@ function setStatus(status) {
 }
 
 function updateScanUi({ progress = 0, phase = '', samplesCaptured = 0, yawDegrees = null, step = '', completedSteps = [] }) {
-  const phaseEl = document.querySelector('#scan-phase');
   const barEl = document.querySelector('#scan-progress-bar');
   const videoWrap = document.querySelector('.video-wrap');
   const overlayLabel = document.querySelector('#video-overlay-label');
   const pct = Math.min(100, Math.max(0, Math.round(progress * 100)));
   const phaseText = phase || '얼굴이 화면 안에 들어오게 맞춰주세요.';
-  if (phaseEl) phaseEl.textContent = phaseText;
   if (overlayLabel) overlayLabel.textContent = pct >= 100 ? '스캔 완료' : phaseText;
   if (barEl) barEl.style.width = `${pct}%`;
   if (videoWrap) {
