@@ -169,7 +169,7 @@ function renderCamera() {
   baseShell(`
     <section class="card stage camera-stage">
       <div>
-        <h1 class="page-title">단계 안내에 맞춰 얼굴을 입체적으로 스캔합니다</h1>
+        <h1 class="page-title">얼굴 스캔을 시작합니다</h1>
         <p class="muted">안내가 바뀔 때까지 천천히 움직여 주세요. 라이브 프레임만 브라우저 메모리에서 분석합니다.</p>
       </div>
       <div class="camera-grid">
@@ -192,6 +192,7 @@ function renderCamera() {
           <p class="eyebrow">Guided scan</p>
           <div class="scan-phase" id="scan-phase">준비되면 스캔을 시작하세요.</div>
           <div class="scan-progress"><span id="scan-progress-bar"></span></div>
+          <button class="btn orange" id="analyze-face">${COPY.analyzeButton}</button>
           <ol class="scan-steps" id="scan-steps">
             <li data-step="center-start"><span class="step-mark">1</span><span class="step-copy">정면</span></li>
             <li data-step="first-side"><span class="step-mark">2</span><span class="step-copy">한쪽</span></li>
@@ -199,7 +200,6 @@ function renderCamera() {
             <li data-step="center-end"><span class="step-mark">4</span><span class="step-copy">정면 복귀</span></li>
           </ol>
           <div class="status-line" id="status-line">카메라 준비 중...</div>
-          <button class="btn orange" id="analyze-face">${COPY.analyzeButton}</button>
           <button class="btn secondary" id="manual-fallback">${COPY.manualButton}</button>
           <button class="btn secondary" id="stop-camera">${COPY.stopCameraButton}</button>
         </aside>
