@@ -192,13 +192,13 @@ p { margin: 0 0 14px; }
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  border: 2px solid rgba(255, 255, 255, 0);
+  border: 4px solid rgba(255, 255, 255, 0);
   box-shadow: none;
   opacity: 0;
   pointer-events: none;
 }
 .video-wrap.face-detected::after {
-  animation: face-edge-flash .72s ease-out 1;
+  animation: face-edge-flash .92s ease-out 1;
 }
 video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); display: block; }
 .scan-hud {
@@ -647,17 +647,34 @@ video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); dis
 @keyframes face-edge-flash {
   0% {
     border-color: rgba(255, 255, 255, 0);
-    box-shadow: inset 0 0 0 rgba(255, 255, 255, 0), 0 0 0 rgba(255, 107, 26, 0);
+    box-shadow:
+      inset 0 0 0 rgba(255, 255, 255, 0),
+      inset 0 0 0 rgba(255, 107, 26, 0),
+      0 0 0 rgba(255, 107, 26, 0);
     opacity: 0;
   }
-  35% {
-    border-color: rgba(255, 255, 255, .92);
-    box-shadow: inset 0 0 34px rgba(255, 255, 255, .32), 0 0 28px rgba(255, 107, 26, .34);
+  32% {
+    border-color: rgba(255, 255, 255, .96);
+    box-shadow:
+      inset 0 0 78px rgba(255, 255, 255, .46),
+      inset 0 0 132px rgba(255, 107, 26, .22),
+      0 0 44px rgba(255, 107, 26, .46);
     opacity: 1;
+  }
+  62% {
+    border-color: rgba(255, 255, 255, .54);
+    box-shadow:
+      inset 0 0 56px rgba(255, 255, 255, .28),
+      inset 0 0 96px rgba(255, 107, 26, .16),
+      0 0 30px rgba(255, 107, 26, .28);
+    opacity: .72;
   }
   100% {
     border-color: rgba(255, 255, 255, 0);
-    box-shadow: inset 0 0 0 rgba(255, 255, 255, 0), 0 0 0 rgba(255, 107, 26, 0);
+    box-shadow:
+      inset 0 0 0 rgba(255, 255, 255, 0),
+      inset 0 0 0 rgba(255, 107, 26, 0),
+      0 0 0 rgba(255, 107, 26, 0);
     opacity: 0;
   }
 }
