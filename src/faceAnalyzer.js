@@ -359,10 +359,21 @@ function emitProgress(onProgress, payload) {
   }
 }
 
+function createAbortError() {
+  const error = new Error('face-scan-aborted');
+  error.name = 'AbortError';
+  return error;
+}
+
+function throwIfAborted(signal) {
+  if (signal?.aborted) throw createAbortError();
+}
+
 export async function analyzeFace(videoElement, options = {}) {
   await loadFaceAnalyzer();
   if (!humanInstance) throw new Error('face-analyzer-not-loaded');
 
+  const { signal } = options;
   const faces = [];
   const scanState = createScanState();
   const startedAt = performance.now();
@@ -375,9 +386,11 @@ export async function analyzeFace(videoElement, options = {}) {
   };
 
   while (performance.now() - startedAt < GUIDED_SCAN_TIMEOUT_MS && !scanInfo.scanCompleted) {
+    throwIfAborted(signal);
     const elapsedMs = performance.now() - startedAt;
 
     const result = await humanInstance.detect(videoElement);
+    throwIfAborted(signal);
     const face = result?.face?.[0];
     if (face) faces.push(face);
     scanInfo = updateScanState(scanState, face);
@@ -397,6 +410,7 @@ export async function analyzeFace(videoElement, options = {}) {
     const remainingMs = GUIDED_SCAN_TIMEOUT_MS - (performance.now() - startedAt);
     if (remainingMs <= 0) break;
     await waitForVideoSample(videoElement, Math.min(ANALYSIS_SAMPLE_INTERVAL_MS, remainingMs));
+    throwIfAborted(signal);
   }
 
   const durationMs = Math.round(performance.now() - startedAt);

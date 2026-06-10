@@ -12,12 +12,14 @@ const MIN_RECOMMENDATION_AGE = 20;
 const AUTO_SCAN_FACE_CONFIDENCE = 0.45;
 const AUTO_SCAN_REQUIRED_HITS = 3;
 const AUTO_SCAN_POLL_MS = 320;
-const AUTO_SCAN_EFFECT_MS = 560;
+const AUTO_SCAN_EFFECT_MS = 420;
 const assetUrl = (path) => `${import.meta.env.BASE_URL}${path}`;
 let autoScanTimer = null;
+let autoScanEffectTimer = null;
 let autoScanInFlight = false;
 let autoScanStableHits = 0;
 let autoScanStarting = false;
+let scanAbortController = null;
 
 function genderLabel(gender) {
   return ({ female: '여성 추정', male: '남성 추정', unknown: '미확인' })[gender] || '미확인';
@@ -61,9 +63,24 @@ function setCameraFeedback(message) {
 }
 
 function clearAutoScanEffect() {
+  if (autoScanEffectTimer) {
+    window.clearTimeout(autoScanEffectTimer);
+    autoScanEffectTimer = null;
+  }
   const videoWrap = document.querySelector('.video-wrap');
   if (!videoWrap) return;
-  videoWrap.classList.remove('face-detected', 'auto-scan-starting');
+  videoWrap.classList.remove('face-detected');
+}
+
+function flashAutoScanEffect() {
+  const videoWrap = document.querySelector('.video-wrap');
+  if (!videoWrap) return;
+  clearAutoScanEffect();
+  videoWrap.classList.add('face-detected');
+  autoScanEffectTimer = window.setTimeout(() => {
+    videoWrap.classList.remove('face-detected');
+    autoScanEffectTimer = null;
+  }, 760);
 }
 
 function stopAutoScanWatcher({ keepEffect = false } = {}) {
@@ -82,6 +99,41 @@ async function waitForAutoScanIdle() {
     await delay(34);
     guard += 1;
   }
+}
+
+function setScanControls(scanning) {
+  const analyzeButton = document.querySelector('#analyze-face');
+  const stopScanButton = document.querySelector('#stop-scan');
+  if (analyzeButton) analyzeButton.disabled = scanning;
+  if (stopScanButton) stopScanButton.classList.toggle('hidden', !scanning);
+}
+
+function resetScanUi(message = COPY.cameraReady) {
+  const barEl = document.querySelector('#scan-progress-bar');
+  const videoWrap = document.querySelector('.video-wrap');
+  if (barEl) barEl.style.width = '0%';
+  if (videoWrap) {
+    videoWrap.classList.remove('is-scanning', 'scan-complete');
+    videoWrap.style.setProperty('--scan-progress', '0%');
+    videoWrap.style.setProperty('--scan-y', '0px');
+    delete videoWrap.dataset.scanStep;
+  }
+  document.querySelectorAll('#scan-steps [data-step]').forEach((stepEl) => {
+    stepEl.classList.remove('done', 'active');
+    stepEl.setAttribute('aria-current', 'false');
+  });
+  clearAutoScanEffect();
+  setCameraFeedback(message);
+  setStatus(message);
+}
+
+function abortCurrentScan() {
+  if (!scanAbortController) return;
+  scanAbortController.abort();
+}
+
+function isAbortError(error) {
+  return error?.name === 'AbortError' || error?.message === 'face-scan-aborted';
 }
 
 function shortTransitionMs(ms = 980) {
@@ -234,6 +286,7 @@ function renderCamera() {
           <div class="scan-phase" id="scan-phase">준비되면 스캔을 시작하세요.</div>
           <div class="scan-progress"><span id="scan-progress-bar"></span></div>
           <button class="btn orange" id="analyze-face">${COPY.analyzeButton}</button>
+          <button class="btn secondary hidden" id="stop-scan">${COPY.stopScanButton}</button>
           <ol class="scan-steps" id="scan-steps">
             <li data-step="center-start"><span class="step-mark">1</span><span class="step-copy">정면</span></li>
             <li data-step="first-side"><span class="step-mark">2</span><span class="step-copy">한쪽</span></li>
@@ -248,6 +301,7 @@ function renderCamera() {
     </section>
   `);
   document.querySelector('#analyze-face').addEventListener('click', handleAnalyze);
+  document.querySelector('#stop-scan').addEventListener('click', abortCurrentScan);
   document.querySelector('#manual-fallback').addEventListener('click', () => renderFallback('수동 입력을 선택했습니다.'));
   document.querySelector('#stop-camera').addEventListener('click', renderIntro);
 }
@@ -265,8 +319,6 @@ function startAutoScanWatcher(video) {
 }
 
 function markFaceDetected(confidence) {
-  const videoWrap = document.querySelector('.video-wrap');
-  if (videoWrap) videoWrap.classList.add('face-detected');
   const pct = Math.round(confidence * 100);
   setCameraFeedback('얼굴을 감지했습니다. 스캔을 준비합니다');
   setStatus(`얼굴 감지됨 · 자동 시작 준비 ${autoScanStableHits}/${AUTO_SCAN_REQUIRED_HITS} · 품질 ${pct}%`);
@@ -279,8 +331,7 @@ async function triggerAutoScanStart(video) {
     autoScanTimer = null;
   }
 
-  const videoWrap = document.querySelector('.video-wrap');
-  if (videoWrap) videoWrap.classList.add('face-detected', 'auto-scan-starting');
+  flashAutoScanEffect();
   setCameraFeedback('스캔을 자동으로 시작합니다');
   setStatus('얼굴 감지 완료 · 자동 스캔 시작');
 
@@ -369,14 +420,16 @@ function updateScanUi({ progress = 0, phase = '', samplesCaptured = 0, yawDegree
 async function handleAnalyze({ autoStarted = false } = {}) {
   stopAutoScanWatcher({ keepEffect: autoStarted });
   if (!autoStarted) await waitForAutoScanIdle();
+  if (scanAbortController) return;
 
   const video = document.querySelector('#camera-video');
-  const button = document.querySelector('#analyze-face');
+  scanAbortController = new AbortController();
   try {
-    if (button) button.disabled = true;
+    setScanControls(true);
     setStatus(COPY.analyzing);
     const result = await analyzeFace(video, {
       onProgress: updateScanUi,
+      signal: scanAbortController.signal,
     });
     if (result.uncertainReason || !result.apparentAge || result.apparentGender === 'unknown') {
       currentProfile = result;
@@ -384,7 +437,8 @@ async function handleAnalyze({ autoStarted = false } = {}) {
       return;
     }
     currentProfile = result;
-    stopActiveCamera();
+    scanAbortController = null;
+    stopActiveCamera({ abortScan: false });
     await renderAnalysisTransition({
       eyebrow: 'Scan complete',
       title: '얼굴 입체 스캔을 완료했습니다',
@@ -394,14 +448,20 @@ async function handleAnalyze({ autoStarted = false } = {}) {
     });
     renderProfileConfirm(result);
   } catch (error) {
+    if (isAbortError(error)) {
+      resetScanUi('얼굴 스캔을 중지했습니다. 다시 시작하려면 버튼을 눌러주세요.');
+      return;
+    }
     renderFallback('얼굴 분석 중 문제가 발생했습니다. 수동 입력으로 이어갑니다.');
   } finally {
-    if (button) button.disabled = false;
+    scanAbortController = null;
+    setScanControls(false);
   }
 }
 
 function renderProfileConfirm(profile) {
   const gender = profile.apparentGender && profile.apparentGender !== 'unknown' ? profile.apparentGender : 'unknown';
+  const confirmedAge = recommendationAge(profile.apparentAge);
   baseShell(`
     <section class="confirm-layout">
       <div class="card">
@@ -413,43 +473,17 @@ function renderProfileConfirm(profile) {
           <div><span>추정 성별</span><b>${escapeHtml(genderLabel(profile.apparentGender))}</b></div>
         </div>
         <div class="confirm-actions">
-          <button class="btn orange" type="submit" form="confirm-form">이 값으로 상품 보기</button>
+          <button class="btn orange" type="button" id="confirm-profile">이 값으로 상품 보기</button>
         </div>
       </div>
-      <form id="confirm-form" class="card form-card">
-        <details class="criteria-details">
-          <summary>추천에 사용할 기준값</summary>
-          <p class="muted">이 값은 상품 카드 선택에만 사용됩니다.</p>
-          <div class="form-grid">
-            <div class="field">
-              <label for="confirm-age">나이</label>
-              <input id="confirm-age" name="age" type="number" min="20" max="100" inputmode="numeric" value="${escapeHtml(profile.apparentAge || '')}" required />
-            </div>
-            <div class="field">
-              <label for="confirm-gender">성별 선택</label>
-              <select id="confirm-gender" name="gender">
-                <option value="unknown" ${gender === 'unknown' ? 'selected' : ''}>선택 안 함</option>
-                <option value="female" ${gender === 'female' ? 'selected' : ''}>여성</option>
-                <option value="male" ${gender === 'male' ? 'selected' : ''}>남성</option>
-              </select>
-            </div>
-          </div>
-          <div class="actions compact-actions">
-            <button class="btn secondary" type="button" id="retry-camera">${COPY.retryButton}</button>
-          </div>
-        </details>
-      </form>
     </section>
   `);
 
-  document.querySelector('#confirm-form').addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    const numericAge = recommendationAge(form.get('age'));
+  document.querySelector('#confirm-profile').addEventListener('click', async () => {
     const confirmedProfile = {
-      apparentAge: numericAge,
-      ageBucket: ageBucket(numericAge),
-      apparentGender: form.get('gender') || 'unknown',
+      apparentAge: confirmedAge,
+      ageBucket: ageBucket(confirmedAge),
+      apparentGender: gender,
       genderConfidence: 1,
       faceConfidence: profile.faceConfidence,
       uncertainReason: '',
@@ -465,7 +499,6 @@ function renderProfileConfirm(profile) {
     });
     renderResult(confirmedProfile, 'confirmed');
   });
-  document.querySelector('#retry-camera').addEventListener('click', handleStartCamera);
 }
 
 function renderFallback(reason, partialProfile = null) {
@@ -708,8 +741,11 @@ function productThumbnailArt(productId) {
   }
 }
 
-function stopActiveCamera() {
+function stopActiveCamera({ abortScan = true } = {}) {
   stopAutoScanWatcher();
+  if (abortScan && scanAbortController) {
+    scanAbortController.abort();
+  }
   if (stream) {
     stopCamera(stream);
     stream = null;

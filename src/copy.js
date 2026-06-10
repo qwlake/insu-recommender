@@ -11,6 +11,7 @@ export const COPY = Object.freeze({
   retryButton: '다시 시도',
   resetButton: '처음으로',
   analyzeButton: '얼굴 입체 스캔 시작',
+  stopScanButton: '얼굴 스캔 중지',
   stopCameraButton: '카메라 끄기',
   loadingModel: '분석 모델을 준비하고 있습니다',
   cameraReady: '얼굴을 찾으면 자동으로 스캔을 시작합니다.',
