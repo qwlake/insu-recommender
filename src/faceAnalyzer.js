@@ -283,7 +283,7 @@ function createScanState() {
 function scanStepLabel(step) {
   return ({
     [SCAN_STEPS.CENTER_START]: '정면이 화면 중앙에 오도록 맞춰주세요',
-    [SCAN_STEPS.FIRST_SIDE]: '좋습니다. 얼굴을 한쪽으로 천천히 돌려주세요',
+    [SCAN_STEPS.FIRST_SIDE]: '좋습니다. 옆면이 보이도록 천천히 돌려주세요',
     [SCAN_STEPS.OPPOSITE_SIDE]: '좋습니다. 이제 반대쪽으로 천천히 돌려주세요',
     [SCAN_STEPS.CENTER_END]: '마지막으로 다시 정면을 바라봐 주세요',
     [SCAN_STEPS.DONE]: '스캔 완료. 결과를 정리하고 있습니다',
