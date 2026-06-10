@@ -283,34 +283,38 @@ function renderProfileConfirm(profile) {
     <section class="confirm-layout">
       <div class="card">
         <p class="eyebrow">추정값 확인</p>
-        <h1 class="page-title">나이와 성별을 확인해 주세요</h1>
+        <h1 class="page-title">데이터를 확인해 주세요</h1>
         <p class="muted">카메라 모델은 외형만 보고 추정합니다. 실제 나이와 차이가 나면 이 화면에서 직접 수정하세요.</p>
         <div class="estimate-summary">
           <div><span>추정 나이</span><b>${profile.apparentAge ? `${escapeHtml(profile.apparentAge)}세` : '미확인'}</b></div>
           <div><span>추정 성별</span><b>${escapeHtml(genderLabel(profile.apparentGender))}</b></div>
         </div>
+        <div class="confirm-actions">
+          <button class="btn orange" type="submit" form="confirm-form">이 값으로 상품 보기</button>
+        </div>
       </div>
       <form id="confirm-form" class="card form-card">
-        <h2>추천에 사용할 기준값</h2>
-        <p class="muted">이 값은 상품 카드 선택에만 사용됩니다.</p>
-        <div class="form-grid">
-          <div class="field">
-            <label for="confirm-age">나이</label>
-            <input id="confirm-age" name="age" type="number" min="20" max="100" inputmode="numeric" value="${escapeHtml(profile.apparentAge || '')}" required />
+        <details class="criteria-details">
+          <summary>추천에 사용할 기준값</summary>
+          <p class="muted">이 값은 상품 카드 선택에만 사용됩니다.</p>
+          <div class="form-grid">
+            <div class="field">
+              <label for="confirm-age">나이</label>
+              <input id="confirm-age" name="age" type="number" min="20" max="100" inputmode="numeric" value="${escapeHtml(profile.apparentAge || '')}" required />
+            </div>
+            <div class="field">
+              <label for="confirm-gender">성별 선택</label>
+              <select id="confirm-gender" name="gender">
+                <option value="unknown" ${gender === 'unknown' ? 'selected' : ''}>선택 안 함</option>
+                <option value="female" ${gender === 'female' ? 'selected' : ''}>여성</option>
+                <option value="male" ${gender === 'male' ? 'selected' : ''}>남성</option>
+              </select>
+            </div>
           </div>
-          <div class="field">
-            <label for="confirm-gender">성별 선택</label>
-            <select id="confirm-gender" name="gender">
-              <option value="unknown" ${gender === 'unknown' ? 'selected' : ''}>선택 안 함</option>
-              <option value="female" ${gender === 'female' ? 'selected' : ''}>여성</option>
-              <option value="male" ${gender === 'male' ? 'selected' : ''}>남성</option>
-            </select>
+          <div class="actions compact-actions">
+            <button class="btn secondary" type="button" id="retry-camera">${COPY.retryButton}</button>
           </div>
-        </div>
-        <div class="actions">
-          <button class="btn orange" type="submit">이 값으로 상품 보기</button>
-          <button class="btn secondary" type="button" id="retry-camera">${COPY.retryButton}</button>
-        </div>
+        </details>
       </form>
     </section>
   `);
